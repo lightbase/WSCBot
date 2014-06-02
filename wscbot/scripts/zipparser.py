@@ -3,13 +3,12 @@
 
 import zipfile
 import logging
-import tempfile
 import json
 import os
 
 from wscbot.scripts.tratamento import t_dados
 
-def ziphandler(filename):
+def ziphandler(filename, tmp_dir):
     """
     Receive a zip file and parse one file at a time, returning a collection of parsed files.
     """
@@ -17,7 +16,6 @@ def ziphandler(filename):
     z_root = zipfile.ZipFile(filename)
 
     # Create a temp dir and unzip file contents
-    tmp_dir = tempfile.mkdtemp()
 
     # registros = {
     #   'import_error' : [],

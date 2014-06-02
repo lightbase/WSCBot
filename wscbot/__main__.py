@@ -14,9 +14,11 @@ from app import main
 from requests.exceptions import *
 import zipfile
 import lockfile
+import tempfile
 
+# absolute path to .ini file
+#ini_path='/srv/super-gerente/WSCBot/development.ini'
 ini_path='/srv/bot-super-gerente/WSCBot/production.ini'
-#absolute path to .ini file
 
 
 
@@ -29,10 +31,15 @@ def setconfig(config_file):
     user = {}
     user['url_wscserver'] = config.get('WSCBot', 'url_wscserver')
     user['filepath'] = config.get('WSCBot', 'filepath')
+    if config.has_option('WSCBot', 'tmp_dir'):
+        user['tmp_dir'] = config.get('WSCBot', 'tmp_dir')
+    else:
+        user['tmp_dir'] = tempfile.mkdtemp()
     user['username'] = config.get('WSCBot', 'username')
     user['senha'] = config.get('WSCBot', 'senha')
     user['data'] = config.get('WSCBot', 'data')
     user['ip_superg'] = config.get('WSCBot', 'ip_superg')
+    user['source_name'] = config.get('WSCBot', 'source_name')
     user['sleep_time'] = int(config.get('WSCBot', 'sleep_time'))
     user['stdin_path'] = config.get('Daemon', 'stdin_path')
     user['stdout_path'] = config.get('Daemon', 'stdout_path')
@@ -57,7 +64,7 @@ class App():
             timeron = time.time()
             logger.info ('Iniciando execução')
             try:
-                main(ip_servidor,username,senha,ip_superg,filepath,data)
+                main(ip_servidor,username,senha,ip_superg,filepath,data,tmp_dir,source_name)
             except (ConnectionError, Timeout):
                 logger.error ('Não foi possivel estabelecer conexão com o servidor! ' + domain)
             except zipfile.BadZipfile:
@@ -78,8 +85,10 @@ ip_servidor = user['url_wscserver']
 senha = user['senha']
 ip_superg = user['ip_superg']
 sleep_time = user['sleep_time']
+source_name = user['source_name']
 username = user['username']
 filepath = user['filepath']
+tmp_dir = user['tmp_dir']
 data = user['data']
 app = App()
 logger = logging.getLogger("WSCBot")
