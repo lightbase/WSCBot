@@ -106,6 +106,6 @@ try:
 except (KeyboardInterrupt, SystemExit):
     raise
 except lockfile.LockTimeout:
-    print "\nErro: Já existe uma instância desse modulo em execução\n"
+    print("\nErro: Já existe uma instância desse modulo em execução\n")
 except runner.DaemonRunnerStopFailureError:
-    print "\nErro: Não existe nenhuma instância desse módulo em execução\n"
+    print("\nErro: Não existe nenhuma instância desse módulo em execução\n")
