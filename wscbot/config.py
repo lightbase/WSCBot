@@ -2,6 +2,7 @@
 import tempfile
 import configparser
 
+
 def setup_config():
 
     global INI_FILE
@@ -13,9 +14,11 @@ def setup_config():
 
     global URL_WSCSERVER
     global URL_LBBULK
+    global URL_SUPER_GERENTE
 
     URL_WSCSERVER = config.get('WSCBot', 'url_wscserver')
     URL_LBBULK = config.get('WSCBot', 'url_lbbulk')
+    URL_SUPER_GERENTE = config.get('WSCBot', 'url_super_gerente')
 
     global FILEPATH
     global SOURCE_NAME

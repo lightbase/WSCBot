@@ -22,19 +22,20 @@ handler = logging.FileHandler(config.LOGFILE_PATH)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+
 class WSCBot(Daemon):
 
     def run(self):
-        logger.info ('Iniciando modulo WSCBot')
+        logger.info('Iniciando modulo WSCBot')
         while True:
-            logger.info ('Iniciando execução')
+            logger.info('Iniciando execução')
             try:
                 robot.main()
             except (ConnectionError, Timeout):
                 logger.error('Não foi possivel estabelecer conexão com o servidor! ' + domain)
             except Exception as erro:
                 logger.critical(traceback.format_exc())
-            time.sleep(config.SLEEP_TIME)
+            #time.sleep(config.SLEEP_TIME)
 
 
 if __name__ == "__main__":
@@ -44,7 +45,8 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         if 'start' == sys.argv[1]:
             print('starting daemon ...')
-            daemon.start()
+            #daemon.start()
+            daemon.run()
         elif 'stop' == sys.argv[1]:
             print('stopping daemon ...')
             daemon.stop()

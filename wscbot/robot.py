@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 import os
@@ -7,6 +6,8 @@ import logging
 import zipfile
 import requests
 from wscbot import config
+import time
+
 
 def main():
 
@@ -28,17 +29,32 @@ def main():
     zip_path = download_file(config.URL_WSCSERVER, params)
 
     if zip_path is not None:
+        # Primeiro tenta criar a base
+        result = create_base(config.URL_SUPER_GERENTE, config.SOURCE_NAME)
+
+        # Tenta conectar à base para pegar configurações
+        saida = get_config(config.URL_SUPER_GERENTE, config.SOURCE_NAME)
+        if saida is None:
+            logger.error("Não foi possível baixar as configurações da URL %s para o órgão %s", config.URL_SUPER_GERENTE, config.SOURCE_NAME)
+            return
+
         zip_path = os.path.abspath(zip_path)
         logger.debug('Enviando arquivo zip ...')
-        upload_file(config.URL_LBBULK, zip_path, config.SOURCE_NAME)
+        upload_file(saida['url'], zip_path, config.SOURCE_NAME)
         os.remove(zip_path)
+
+        # Agora espera o tempo definido
+        horas = int(saida['coleta']) * 3600
+        logger.info("Aguardando %d segundos ou %d horas", horas, int(saida['coleta']))
+        time.sleep(horas)
+
 
 def download_file(url, params):
     """
     Download file from url
     """
     fname = str(uuid.uuid4()) + '.zip'
-    local_filename =  config.FILEPATH + '/' + fname
+    local_filename = config.FILEPATH + '/' + fname
     req = requests.get(url, stream=True, params=params)
     try:
         req.raise_for_status()
@@ -59,6 +75,7 @@ def download_file(url, params):
 
     return local_filename
 
+
 def upload_file(url, file_path, source_name):
 
     params = {'source_name': source_name}
@@ -74,3 +91,49 @@ def upload_file(url, file_path, source_name):
         return None
 
 logger = logging.getLogger("WSCBot")
+
+
+def create_base(url, nome_orgao):
+    """
+    Cria base no Super Gerente
+    :param url: URL do Super Gerente
+    :return:
+    """
+    # URL para criar o órgão
+    url += '/create/coleta/' + nome_orgao
+    logger.debug("criando base para o órgão %s na URL %s", nome_orgao, url)
+    response = requests.post(url)
+    if response.status_code != '200':
+        logger.error("Erro na criação da base ou base já existe.\n%s", response.text)
+        return False
+    else:
+        logger.debug("Base criada com sucesso!")
+        return True
+
+
+def get_config(url, nome_orgao):
+    """
+    Busca configurações do Bot no módulo Super Gerente
+    :param url: URL do Super Gerente
+    :return:
+    """
+    url += '/api/orgaos/' + nome_orgao
+    logger.debug("Buscando configurações para o órgão %s na URL %s", nome_orgao, url)
+    response = requests.get(url)
+    if response.status_code != '200':
+        logger.error("Órgão não encontrado.\n%s", response.text)
+        return None
+
+    orgao = response.json()
+    url_bulk = orgao['results'][0]['url']
+    coleta = orgao['results'][0]['coleta']
+    habilitar_bot = orgao['results'][0]['habilitar_bot']
+
+    # TODO: Inserir notificações
+    saida = {
+        'url': url_bulk,
+        'coleta': coleta,
+        'habilitar_bot': habilitar_bot
+    }
+
+    return saida
