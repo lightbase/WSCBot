@@ -15,10 +15,12 @@ def setup_config():
     global URL_WSCSERVER
     global URL_LBBULK
     global URL_SUPER_GERENTE
+    global API_KEY
 
     URL_WSCSERVER = config.get('WSCBot', 'url_wscserver')
     URL_LBBULK = config.get('WSCBot', 'url_lbbulk')
     URL_SUPER_GERENTE = config.get('WSCBot', 'url_super_gerente')
+    API_KEY = config.get('WSCBot', 'api_key')
 
     global FILEPATH
     global SOURCE_NAME

@@ -16,6 +16,9 @@ source_name: brlight
 # Tempo entre as leituras em busca de registros (em segundos)
 sleep_time: 2
 
+# Chave de API: elemento obrigatório para o envio das coletas
+api_key: 123456
+
 [Daemon]
 
 pidfile_path = /var/run/wscbot.pid
