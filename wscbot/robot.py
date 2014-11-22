@@ -6,6 +6,7 @@ import logging
 import zipfile
 import requests
 import json
+import configparser
 from wscbot import config
 import time
 
@@ -24,9 +25,10 @@ def main():
     """
 
     params = {
-        #'zip' : '0', # Will return JSON
-        'zip' : '1', # Will return zip
-        'limit' : '100'}
+        #'zip': '0', # Will return JSON
+        'zip': '1',  # Will return zip
+        #'limit': '100'
+    }
 
     # Tenta conectar à base para pegar configurações
     saida = get_config(config.URL_SUPER_GERENTE, config.SOURCE_NAME, config.API_KEY)
@@ -47,17 +49,68 @@ def main():
             time.sleep(horas)
             return
 
-    # Tenta criar a base
+        # Atualiza valores de configuração de acordo com o obtido no get_config
+        conf = configparser.ConfigParser()
+        conf.read(config.INI_FILE)
+        conf['WSCBot']['url_super_gerente'] = saida['url']
+        conf['WSCBot']['sleep_time'] = str(saida['coleta'])
+        with open('example.ini', 'w') as configfile:
+            conf.write(configfile)
+
+    # 1 - Tenta criar a base da coleta do órgão
     result = create_base(config.URL_SUPER_GERENTE, config.SOURCE_NAME, config.API_KEY)
 
-    logger.debug('Baixando arquivo zip ...')
+    logger.info('Baixando arquivo zip ...')
+    t0 = time.clock()
     zip_path = download_file(config.URL_WSCSERVER, params)
+    t1 = time.clock() - t0
+    logger.info("Download do arquivo .zip concluido. Tempo de execuçao: %s segundos", t1)
 
     if zip_path is not None:
         zip_path = os.path.abspath(zip_path)
+
+        # 3 - Registra coleta na base de histórico
+        result = upload_file(
+            saida['url'],
+            zip_path,
+            'orgaos_bk',
+            config.API_KEY,
+            config.SOURCE_NAME
+        )
+
+        if not result:
+            logger.error("Erro na inserção da coleta na base de histórico!!!")
+            horas = int(saida['coleta']) * 3600
+            logger.info("Próxima tentativa em %s horas", saida['coleta'])
+            time.sleep(horas)
+            return
+
+        # 4 - Apaga base da coleta do órgão se tiver sucesso no histórico
+        # 5 - Apaga base de relatórios de qualquer jeito
+        # 6 - Cria base de coletas do órgão
+        logger.debug("Removendo base de coletas para o órgão %s", config.SOURCE_NAME)
+        result = remove_base(saida['url'], config.SOURCE_NAME, config.API_KEY)
+
+        # 7 - Registra coleta na base do órgão
+        if not result:
+            logger.error("Erro na inserção da coleta na base de histórico!!!")
+            horas = int(saida['coleta']) * 3600
+            logger.info("Próxima tentativa em %s horas", saida['coleta'])
+            time.sleep(horas)
+            return
+
         logger.debug('Enviando arquivo zip ...')
-        upload_file(saida['url'], zip_path, config.SOURCE_NAME)
+        result = upload_file(
+            saida['url'],
+            zip_path,
+            config.SOURCE_NAME,
+            config.API_KEY
+        )
+        if not result:
+            logger.error("Erro no envio do arquivo .zip!!!")
+
         os.remove(zip_path)
+        logger.info("Coleta finalizada com sucesso!!!")
 
         # Agora espera o tempo definido
         horas = int(saida['coleta']) * 3600
@@ -92,19 +145,30 @@ def download_file(url, params):
     return local_filename
 
 
-def upload_file(url, file_path, source_name):
+def upload_file(url, file_path, source_name, api_key, default_value=None):
+    url += '/api/' + source_name + '/upload'
 
-    params = {'source_name': source_name}
+    # Garante filtro pelo órgão
+    if source_name == 'orgaos_bk':
+        source_name = config.SOURCE_NAME
+
+    params = {
+        'api_key': api_key,
+        'source_name': source_name,
+        'default_value': default_value
+    }
     files = {'file': open(file_path, 'rb')}
     req = requests.post(url, params=params, files=files)
 
     try:
         req.raise_for_status()
+        return True
     except:
         logger.error("""
             Erro ao tentar enviar arquivo na url %s. Resposta: %s
         """ % (url, req._content))
         return None
+
 
 def create_base(url, nome_orgao, api_key):
     """
@@ -148,3 +212,24 @@ def get_config(url, nome_orgao, api_key):
     # TODO: Inserir notificaçõe
 
     return orgao
+
+
+def remove_base(url, nome_orgao, api_key):
+    """
+    Remove base no Super Gerente
+    :param url: URL do Super Gerente
+    :return:
+    """
+    # URL para criar o órgão
+    url += '/api/' + nome_orgao
+    logger.debug("criando base para o órgão %s na URL %s", nome_orgao, url)
+    params = {
+        'api_key': api_key
+    }
+    response = requests.delete(url, params=params)
+    if response.status_code != 200:
+        logger.error("Erro na remoção da base.\n%s", response.text)
+        return False
+    else:
+        logger.debug("Base %s removida com sucesso!", nome_orgao)
+        return True
