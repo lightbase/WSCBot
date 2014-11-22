@@ -61,10 +61,10 @@ def main():
     result = create_base(config.URL_SUPER_GERENTE, config.SOURCE_NAME, config.API_KEY)
 
     logger.info('Baixando arquivo zip ...')
-    t0 = time.clock()
+    t0 = time.time()
     zip_path = download_file(config.URL_WSCSERVER, params)
-    t1 = time.clock() - t0
-    logger.info("Download do arquivo .zip concluido. Tempo de execuçao: %s segundos", t1)
+    t1 = time.time() - t0
+    logger.info("Download do arquivo .zip concluido. Tempo de execuçao: %s segundos", int(t1))
 
     if zip_path is not None:
         zip_path = os.path.abspath(zip_path)
