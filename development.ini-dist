@@ -6,6 +6,9 @@ url_wscserver: http://127.0.0.1/rest/coleta
 # Url de acesso ao módulo LBBulk
 url_lbbulk: http://127.0.0.1/lbbulk/reg
 
+# URL de acesso ao Super Gerente
+url_super_gerente: http://localhost/wscacicneo
+
 #Local do disco onde o arquivo será salvo temporariamente
 filepath: /tmp/extract/
 
@@ -14,7 +17,7 @@ filepath: /tmp/extract/
 source_name: brlight
 
 # Tempo entre as leituras em busca de registros (em segundos)
-sleep_time: 2
+sleep_time: 300
 
 # Chave de API: elemento obrigatório para o envio das coletas
 api_key: 123456
