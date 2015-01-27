@@ -31,11 +31,12 @@ class WSCBot(Daemon):
             logger.info('Iniciando execução')
             try:
                 robot.main()
-            except (ConnectionError, Timeout):
-                logger.error('Não foi possivel estabelecer conexão com o servidor! ' + domain)
+            except (ConnectionError, Timeout) as e:
+                logger.critical('Não foi possivel estabelecer conexão com o servidor! %s', e.request.url)
+                time.sleep(config.SLEEP_TIME)
             except Exception as erro:
                 logger.critical(traceback.format_exc())
-            #time.sleep(config.SLEEP_TIME)
+                time.sleep(config.SLEEP_TIME)
 
 
 if __name__ == "__main__":
