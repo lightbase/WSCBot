@@ -10,6 +10,7 @@ from wscbot import robot
 from wscbot import config
 from wscbot.daemon import Daemon
 from requests.exceptions import *
+from logging.handlers import RotatingFileHandler
 
 config.setup_config()
 
@@ -18,7 +19,8 @@ logger = logging.getLogger("WSCBot")
 logger.setLevel(logging.DEBUG)
 format_pattern = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 formatter = logging.Formatter(format_pattern)
-handler = logging.FileHandler(config.LOGFILE_PATH)
+#handler = logging.FileHandler(config.LOGFILE_PATH)
+handler = RotatingFileHandler(config.LOGFILE_PATH, 'a', int(20*1024*1024), 10)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
@@ -31,8 +33,9 @@ class WSCBot(Daemon):
             logger.info('Iniciando execução')
             try:
                 robot.main()
-            except (ConnectionError, Timeout):
-                logger.error('Não foi possivel estabelecer conexão com o servidor! ' + domain)
+            except (ConnectionError, Timeout) as e:
+                logger.error('Não foi possivel estabelecer conexão com o servidor! ' + e.request.url)
+                logger.error(traceback.format_exc())
             except Exception as erro:
                 logger.critical(traceback.format_exc())
             #time.sleep(config.SLEEP_TIME)
