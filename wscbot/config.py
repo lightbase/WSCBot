@@ -7,7 +7,7 @@ def setup_config():
 
     global INI_FILE
 
-    INI_FILE = 'development.ini'
+    INI_FILE = 'production.ini'
 
     config = configparser.ConfigParser()
     config.read(INI_FILE)
