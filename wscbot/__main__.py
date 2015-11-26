@@ -39,6 +39,9 @@ class WSCBot(Daemon):
             except Exception as erro:
                 logger.critical(traceback.format_exc())
                 time.sleep(config.SLEEP_TIME)
+            except KeyboardInterrupt as e:
+                logger.info("Interrupção forçada! Parando...")
+                sys.exit(0)
 
 
 if __name__ == "__main__":
