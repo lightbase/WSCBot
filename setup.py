@@ -6,14 +6,14 @@ requires = [
     ]
 
 setup(
-    name = "WSCBot",
-    version = "0.1.3",
-    author = "Lightbase",
-    author_email = "breno.brito@lightbase.com.br",
-    url = "https://pypi.python.org/pypi/LBConverter",
-    description = "Daemon for the neo-lightbase service",
-    license = "GPLv2",
-    keywords = "Converter extractor lightbase daemon",
+    name="WSCBot",
+    version="1.1.2b3",
+    author="Lightbase",
+    author_email="breno.brito@lightbase.com.br",
+    url="https://pypi.python.org/pypi/LBConverter",
+    description="Daemon for the neo-lightbase service",
+    license="GPLv2",
+    keywords="Converter extractor lightbase daemon",
     install_requires=requires,
     packages=find_packages(),
     classifiers=[
