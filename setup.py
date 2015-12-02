@@ -7,7 +7,7 @@ requires = [
 
 setup(
     name="WSCBot",
-    version="1.1.2b4",
+    version="1.1.2b5",
     author="Lightbase",
     author_email="breno.brito@lightbase.com.br",
     url="https://pypi.python.org/pypi/LBConverter",
